@@ -4,29 +4,24 @@ double run_mpi(const char* filename, MPIIO &hIO, int workerNum, const Method_t m
 {
     //Computational Cost
     clock_t begin = clock();
-
     hIO.init(lenBuf, workerNum);
 
     // Sourcce init
-    if (hIO.isMaster())
-    {
+    if (hIO.isMaster()) { // Master part
         Source source(workerNum, method, tolerance);
         Edge edge;
-        MID dst1(0);
-        MID dst2(0);
+        MID dst1(0), dst2(0);
         bool isBroadCast;
         EdgeParser parser(filename);
 
-        while (parser.getEdge(edge)) // Stream edges
-        {
-
+        while (parser.getEdge(edge)) { // Stream edges
             if(edge.src != edge.dst) {
                 isBroadCast = source.processEdge(edge, dst1, dst2);
 
-                if (!isBroadCast) // dst1 == dst2
+                if (!isBroadCast) 
                 {
                     hIO.sendEdge(edge, dst1);
-                } else //dst != dst2
+                } else 
                 {
                     hIO.bCastEdge(edge, dst1, dst2);
                 }
@@ -36,21 +31,15 @@ double run_mpi(const char* filename, MPIIO &hIO, int workerNum, const Method_t m
 
         hIO.sendEndSignal();
 
-        //std::cout << "Master: " << double(clock() - begin) / CLOCKS_PER_SEC << "\t" << hIO.getIOCPUTime() / CLOCKS_PER_SEC << "\t" <<  srcCompCost << endl;
-
         // Gather results from curWorkers
         double globalCnt = 0;
-
         // communication cost for gather
         hIO.recvCnt(source.getMaxVId(), globalCnt, oLocalCnt);
-
-        //std::cout << source.getMaxVId() << "\t" << globalCnt << "\t" << oLocalCnt.size();
-
         hIO.recvTime(workerCompCostMax, workerCompCostSum);
 
         if(method == Method_t::NAIVE)
         {
-            globalCnt = globalCnt / workerNum;
+            globalCnt /= workerNum;
             for(auto it = oLocalCnt.begin(); it != oLocalCnt.end(); ++it)
             {
                 *it  = *it / workerNum;
@@ -62,8 +51,6 @@ double run_mpi(const char* filename, MPIIO &hIO, int workerNum, const Method_t m
         return globalCnt;
     }
     else {// Worker part
-    
-        //std::cout << "worker begins..." << endl;
 
         Worker  worker(memSize, seed + hIO.getWorkerId());
         Edge edge;
@@ -74,7 +61,6 @@ double run_mpi(const char* filename, MPIIO &hIO, int workerNum, const Method_t m
             } else {
                 worker.processEdgeWithoutSampling(edge);
             }
-
         }
 
         // send counts to master
