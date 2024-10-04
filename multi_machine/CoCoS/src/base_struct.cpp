@@ -1,9 +1,5 @@
 #include "base_struct.hpp"
 
-
-
-
-
 #ifdef _TEST_
 
 TEST_CASE( "Edge", "[BaseStruct]" ) 

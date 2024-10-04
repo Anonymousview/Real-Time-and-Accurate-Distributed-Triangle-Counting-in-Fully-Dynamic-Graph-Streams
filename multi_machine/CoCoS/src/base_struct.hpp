@@ -33,7 +33,6 @@ struct Edge
 	Edge(): src(INVALID_VID), dst(INVALID_VID) {}
 	Edge(VID iSrc, VID iDst): src(iSrc), dst(iDst) {}
 
-	//Edge(const Edge &iEdge): src(iEdge.src), dst(iEdge.dst) {}
 	inline bool operator==(const Edge& iEdge) const 
 	{
 		return (src == iEdge.src) && (dst == iEdge.dst);
@@ -92,7 +91,6 @@ public:
 		fp.seekg(0, ios_base::beg);
 	}
 };
-
 
 
 #endif // #ifndef _BASE_STRCUT_HPP
